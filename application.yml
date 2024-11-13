@@ -1,0 +1,9 @@
+spring:
+    application:
+        name: lbdemo
+
+server:
+    port: 8081
+
+msg:
+    resp: Respuesta1
