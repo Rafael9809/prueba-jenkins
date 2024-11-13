@@ -1,5 +1,4 @@
-FROM amazoncorretto:17-alpine3.17-jdk
-RUN sudo apk add --no-cache tzdata
+FROM eclipse-temurin:17-jdk
 ENV TZ=America/Mexico_City
 RUN mkdir /app
 VOLUME /app
