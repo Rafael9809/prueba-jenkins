@@ -1,0 +1,54 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKER_REGISTRY = 'rafael9809' 
+        IMAGE_NAME = 'prueba_jenkins'    
+        IMAGE_TAG = "${BUILD_NUMBER}"
+        FULL_IMAGE_NAME = "${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"
+        DOCKERFILE_NAME = 'jdk17-util.dockerfile'
+    }
+
+    stages {
+        stage('Clonar repositorio') {
+            steps {
+                git(
+                    url: "https://github.com/Rafael9809/prueba-jenkins.git",
+                    branch: "main"
+                )
+            }
+        }
+        stage('Compilar con Maven') {
+            steps {
+                sh 'mvn clean install'
+            }
+        }
+        stage('Construir imagen Docker') {
+            steps {
+                sh "docker build -f ${DOCKERFILE_NAME} -t ${FULL_IMAGE_NAME} ."
+            }
+        }
+        stage('Publicar imagen Docker') {
+            steps {
+                sh "docker push ${FULL_IMAGE_NAME}"
+            }
+        }
+        stage('Desplegar contenedor Docker') {
+            input{
+                message 'Deploy?'
+                ok 'do it'
+                parameters{
+                    string(name: 'TARGET_ENVIRONMENT', defaultValue: 'PROD', description: 'Target deployed in prod')
+                }
+            }
+            steps {
+                sh "docker run -d -p 8082:8082 ${FULL_IMAGE_NAME}"
+            }
+        }
+        stage('Publish'){
+            steps{
+                archiveArtifacts('**/*.jar')
+            }
+        }
+    }
+}
